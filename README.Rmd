@@ -1,0 +1,56 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+# Get email addresses of maintainers
+
+```{r}
+packages <- as.character(available.packages()[,1])
+
+get_maintainer_email <- function(package){
+  Sys.sleep(1)
+  metadata <- crandb::package(package)
+  maintainer <- as.person(metadata$Maintainer)
+  email <- maintainer$email
+  name <- paste(maintainer$given, maintainer$family)
+  tibble::tibble(package = package,
+                 maintainer = name,
+                 email = email)
+}
+
+emails <- purrr::map_df(packages,
+                        get_maintainer_email)
+
+
+```
+
+Since `HIBPwned` implements caching inside an active R session via `memoise` I don't need to care about duplicate emails! :nail_care:
+
+# Pwned?
+
+```{r}
+library("magrittr")
+emails <- dplyr::group_by(emails, package) %>%
+  dplyr::mutate(pwned = list(HIBPwned::account_breaches(email)[[1]]))
+
+
+```
+
+# Pasted?
+
+```{r}
+emails <- dplyr::group_by(emails, package) %>%
+  dplyr::mutate(pastes = list(HIBPwned::pastes(email)[[1]]))
+
+save(emails, file = "emails.RData")
+```
