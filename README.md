@@ -4,33 +4,74 @@
 # Get email addresses of maintainers
 
 ``` r
-set.seed(123)
-packages <- sample(as.character(available.packages(contriburl = contrib.url("https://cran.rstudio.com/"))[,1]), size = 1000)
+library("magrittr")
+```
 
-get_maintainer_email <- function(package){
-  Sys.sleep(1)
-  metadata <- crandb::package(package)
-  maintainer <- as.person(metadata$Maintainer)
-  
-  if(maintainer$family != "ORPHANED"){
-    email <- maintainer$email[1]
-    name <- paste(maintainer$given, maintainer$family)
-    tibble::tibble(package = package,
-                   maintainer = name,
-                   email = email)
-  }else{
-    NULL
+Code adapted from [this blog
+post](http://blog.revolutionanalytics.com/2018/03/the-most-prolific-package-maintainers-on-cran.html).
+
+``` r
+get_maintainer_email <- function(maintainer_string){
+  if(inherits(maintainer_string, "data.frame")){
+    maintainer_string <- maintainer_string$Maintainer[1]
   }
   
+  if(maintainer_string != "ORPHANED"){
+     maintainer_string <- stringr::str_replace_all(maintainer_string,
+                                                '"', '')
+     maintainer_string <- stringr::str_replace_all(maintainer_string,
+                                                ',', '')
+     # particular case!
+     maintainer_string <- stringr::str_replace_all(maintainer_string,
+                                                'Berlin School of Economics and Law', '')
+    maintainer <- as.person(maintainer_string)
+    maintainer$email
+  }else{
+    ""
+  }
   
 }
 
-emails <- purrr::map_df(packages,
-                        get_maintainer_email)
+tools::CRAN_package_db() %>%
+  .[, c("Package", "Maintainer")] %>%
+  tidyr::nest(Maintainer, .key = "Maintainer") %>%
+  # get the email out of the maintainer
+  dplyr::mutate(email = purrr::map_chr(Maintainer,
+                                       get_maintainer_email)) %>%
+  dplyr::select(- Maintainer) %>%
+  # only keep the ones with email
+  dplyr::filter(email != "") %>%
+  # save result
+  readr::write_csv(path = "data/all_packages.csv")
 ```
 
-Since `HIBPwned` implements caching inside an active R session via
-`memoise` I don’t need to care about duplicate emails\! :nail\_care:
+``` r
+emails <- readr::read_csv("data/all_packages.csv")
+#> Parsed with column specification:
+#> cols(
+#>   Package = col_character(),
+#>   email = col_character()
+#> )
+knitr::kable(emails[1:10,])
+```
+
+| Package     | email                               |
+| :---------- | :---------------------------------- |
+| A3          | <scottfr@berkeley.edu>              |
+| abbyyR      | <gsood07@gmail.com>                 |
+| abc         | <michael.blum@imag.fr>              |
+| ABCanalysis | <lerch@mathematik.uni-marburg.de>   |
+| abc.data    | <michael.blum@imag.fr>              |
+| abcdeFBA    | <gangutalk@gmail.com>               |
+| ABCoptim    | <g.vegayon@gmail.com>               |
+| ABCp2       | <katie.duryea@gmail.com>            |
+| ABC.RAP     | <a.alsaleh@hotmail.co.nz>           |
+| abcrf       | <jean-michel.marin@umontpellier.fr> |
+
+We have 12444 packages with 7173 unique email addresses. We do not have
+to care about their uniqueness: since `HIBPwned` implements caching
+inside an active R session via `memoise` duplicate emails do not mean
+duplicate request\! :nail\_care:
 
 # Pwned?
 
@@ -38,13 +79,14 @@ Since `HIBPwned` implements caching inside an active R session via
 library("magrittr")
 emails <- dplyr::group_by(emails, package) %>%
   dplyr::mutate(pwned = list(HIBPwned::account_breaches(email)[[1]]))
+
 ```
 
 # Pasted?
 
 ``` r
 emails <- dplyr::group_by(emails, package) %>%
-  dplyr::mutate(pastes = list(HIBPwned::pastes(email)[[1]]))
+  dplyr::mutate(pastes = list(HIBPwned::pastes(email)))
 
 save(emails, file = "emails.RData")
 ```
