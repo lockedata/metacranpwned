@@ -107,8 +107,10 @@ pwned <- HIBPwned::account_breaches(emails$email,
 pwned <- unique(pwned)
 ```
 
-There are 7173 unique CRAN maintainer emails, among which 6 i.e. 0% have
-been pwned.
+There are 7173 unique CRAN maintainer emails, among which 3613 i.e. 50%
+have been pwned.
+
+    #> [1] "data.frame"
 
 ``` r
 pwned %>%
@@ -121,9 +123,9 @@ pwned %>%
 
 | median | min | max |
 | -----: | --: | --: |
-|    2.5 |   1 |   7 |
+|      2 |   1 |  18 |
 
-There are 10 breaches. What were the most common breaches?
+There are 136 breaches. What were the most common breaches?
 
 ``` r
 pwned %>%
@@ -134,18 +136,18 @@ pwned %>%
   knitr::kable()
 ```
 
-| Title       | BreachDate | n |
-| :---------- | :--------- | -: |
-| LinkedIn    | 2012-05-05 | 5 |
-| Dropbox     | 2012-07-01 | 4 |
-| Last.fm     | 2012-03-22 | 3 |
-| Adobe       | 2013-10-04 | 1 |
-| Bitly       | 2014-05-08 | 1 |
-| Dailymotion | 2016-10-20 | 1 |
-| Disqus      | 2012-07-01 | 1 |
-| GeekedIn    | 2016-08-15 | 1 |
-| MDPI        | 2016-08-30 | 1 |
-| MySpace     | 2008-07-01 | 1 |
+| Title              | BreachDate |    n |
+| :----------------- | :--------- | ---: |
+| Dropbox            | 2012-07-01 | 1534 |
+| LinkedIn           | 2012-05-05 | 1140 |
+| Onliner Spambot    | 2017-08-28 |  943 |
+| GeekedIn           | 2016-08-15 |  782 |
+| Adobe              | 2013-10-04 |  694 |
+| MDPI               | 2016-08-30 |  558 |
+| Last.fm            | 2012-03-22 |  350 |
+| NetProspex         | 2016-09-01 |  310 |
+| B2B USA Businesses | 2017-07-18 |  279 |
+| Disqus             | 2012-07-01 |  259 |
 
 # Pasted?
 

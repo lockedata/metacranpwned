@@ -97,6 +97,12 @@ pwned <- unique(pwned)
 
 There are `r length(unique(emails$email))` unique CRAN maintainer emails, among which `r length(unique(pwned$account))` i.e. `r round(length(unique(pwned$account))/length(unique(emails$email)), digits = 2)*100`% have been pwned. 
 
+```{r, echo = FALSE}
+class(pwned)
+#readr::write_csv(pwned, path = "data/pwned.csv")
+
+```
+
 ```{r}
 pwned %>%
   dplyr::count(account) %>%
